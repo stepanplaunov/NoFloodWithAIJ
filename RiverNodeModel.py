@@ -4,8 +4,9 @@ from DataTransformers import *
 from sklearn.metrics import mean_absolute_error as mae
 from rdnhelpers import get_meteo, nse
 import pickle
+import datetime
 import numpy as np
-
+from datetime import datetime, timedelta
 
 def mat_nse(simulations, evaluation):
     result = np.array(simulations.shape[0], dtype=np.float64)
@@ -24,6 +25,9 @@ class RiverNodeModel:
             self.ice_df = pd.read_csv(self.data_path + 'hydro/0' + str(self.post_id) + '_ice.csv', index_col='date', engine='python')
         except:
             self.ice_df = None
+
+        self.left_bound = self.hydro_df.index.min()
+        self.right_bound = self.hydro_df.index.max()
 
     def __init__(self, post_id, data_path, models_path, is_load=False):
         self.post_id = post_id
@@ -55,6 +59,7 @@ class RiverNodeModel:
             "verbosity ": -1,
             "early_stopping_rounds": 100,
         }
+
         self.f_model = GBForecastModel(10)
         self.f_model.set_params([parameters] * _lag)
 
@@ -77,10 +82,10 @@ class RiverNodeModel:
 
         data = FinalTransformer().fit_transform(_hdata.index, filter(lambda x: x is not None, [_hdata, _mdata, _idata]))
 
+        train_start = '2000-01-01'
         train_end = '2014-12-31'
         test_start = '2015-01-01'
         test_end = '2016-12-30'
-        train_start = '1985-12-31'
 
         X_trains, y_trains, X_tests, y_tests \
             = train_test_split(data, train_start, train_end, test_start, test_end)
