@@ -80,6 +80,12 @@ class TimeSeriesExtracter():
     def fit_transform(self, df):
         return self.fit(df).transform()
     
+def substract_seasonality(series, period):
+    return series - sm.tsa.seasonal_decompose(series, period = period).seasonal
+
+def extract_seasonality(series, period):
+    return sm.tsa.seasonal_decompose(series, period = period).seasonal
+    
 class RiverNodeModel:
     def __load__(self):
         self.hydro_df = pd.read_csv(self.data_path + 'hydro/0' + str(self.post_id) + '_daily.csv', sep=';', engine='python')
